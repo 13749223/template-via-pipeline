@@ -1,0 +1,4 @@
+{
+  "env": "qa",
+  "base_domain": "sdge-cs-notifications.aws.sempra.com"
+}

@@ -1,0 +1,1 @@
+This is a sample email template created for proof-of-concept purposes.
