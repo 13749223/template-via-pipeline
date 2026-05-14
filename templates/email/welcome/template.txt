@@ -1,0 +1,6 @@
+{{> test_banner_msg}}
+Hello {{first_name}},
+Welcome to our service.
+{{#if has_discount}}
+Your discount is active and ready to use.
+{{/if}}

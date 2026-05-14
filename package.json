@@ -1,0 +1,24 @@
+{
+    "name":  "template-via-pipeline",
+    "version":  "1.0.0",
+    "private":  true,
+    "description":  "POC scaffold for CI/CD template deployment.",
+    "type":  "module",
+    "engines":  {
+                    "node":  "\u003e=20"
+                },
+    "scripts":  {
+                    "build":  "node scripts/build/build.js --env qa",
+                    "lint":  "eslint .",
+                    "format":  "prettier --write \"**/*.{js,mjs,cjs,json,md,yml,yaml,html}\""
+                },
+    "dependencies":  {
+                         "fs-extra":  "^11.3.5",
+                         "glob":  "^13.0.6",
+                         "handlebars":  "^4.7.9"
+                     },
+    "devDependencies":  {
+                            "eslint":  "^10.3.0",
+                            "prettier":  "^3.8.3"
+                        }
+}

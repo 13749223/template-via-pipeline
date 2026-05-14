@@ -1,0 +1,99 @@
+name: Template Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target partial environment"
+        required: true
+        default: "qa"
+        type: choice
+        options:
+          - qa
+          - prod
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-templates:
+    runs-on: ubuntu-latest
+
+    env:
+      DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'qa' }}
+
+    steps:
+      - name: 1. Checkout
+        uses: actions/checkout@v4
+
+      - name: 2. Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: 3. npm install
+        run: npm ci
+
+      - name: 4. Run validation
+        run: npm run lint
+
+      - name: 5. Run build
+        run: node scripts/build/build.js --env "${DEPLOY_ENV}"
+
+      - name: 6. Generate artifact hashes
+        run: node scripts/build/hash.js --env "${DEPLOY_ENV}"
+
+      - name: 7. Generate tfvars
+        run: node scripts/build/deployers/pinpoint/generate-tfvars.js
+
+      - name: 8. Terraform init
+        working-directory: deployers/pinpoint/terraform
+        run: terraform init
+
+      - name: 9. Terraform plan
+        working-directory: deployers/pinpoint/terraform
+        run: terraform plan -var-file=../../../dist/templates.auto.tfvars.json -out=tfplan
+
+      - name: 10. Terraform apply
+        working-directory: deployers/pinpoint/terraform
+        run: terraform apply -auto-approve tfplan
+
+      - name: Upload dist artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: template-dist-${{ env.DEPLOY_ENV }}-${{ github.run_id }}
+          path: dist/
+          if-no-files-found: warn
+
+      - name: Print deployment summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Template Deployment Summary"
+            echo "- Environment: ${DEPLOY_ENV}"
+            echo "- Trigger: ${{ github.event_name }}"
+            if [ -f dist/manifest.json ]; then
+              TEMPLATE_COUNT=$(jq '.templates | length' dist/manifest.json)
+              echo "- Templates in manifest: ${TEMPLATE_COUNT}"
+              echo ""
+              echo "### Template Hashes"
+              jq -r '.templates[] | "- \(.name): \(.hash)"' dist/manifest.json
+            else
+              echo "- Manifest: not generated"
+            fi
+            if [ -f dist/deployment-artifact.json ]; then
+              DEPLOYABLE_COUNT=$(jq '.templates | keys | length' dist/deployment-artifact.json)
+              echo "- Deployable templates: ${DEPLOYABLE_COUNT}"
+            else
+              echo "- Deployment artifact: not generated"
+            fi
+            if [ -f dist/templates.auto.tfvars.json ]; then
+              TFVARS_COUNT=$(jq '.templates | length' dist/templates.auto.tfvars.json)
+              echo "- Terraform template entries: ${TFVARS_COUNT}"
+            else
+              echo "- tfvars: not generated"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

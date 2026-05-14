@@ -1,16 +1,30 @@
-# Python
-__pycache__/
-*.pyc
-venv/
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Env files
+# Build outputs
+build/
+dist/
+
+# Environment files
 .env
+.env.*
 
 # Logs
-logs_*/
+logs/
+*.log
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
 
 # Terraform
 .terraform/
 *.tfstate
-*.tfstate.backup
-
+*.tfstate.*
+.terraform.lock.hcl

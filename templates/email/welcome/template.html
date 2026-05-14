@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en">
+  <body>
+    {{> test_banner_msg}}
+    <p>Hello {{first_name}},</p>
+    <p>Welcome to our service.</p>
+    {{#if has_discount}}
+    <p>Your discount is active and ready to use.</p>
+    {{/if}}
+  </body>
+</html>

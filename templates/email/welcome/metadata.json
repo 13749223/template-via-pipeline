@@ -1,0 +1,5 @@
+{
+  "template_name": "welcome",
+  "template_type": "email",
+  "subject": "Welcome to our service"
+}
